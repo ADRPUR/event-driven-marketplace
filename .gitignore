@@ -1,0 +1,85 @@
+# ------------------------------------------------------------
+
+# GO / INTELLIJ IDEA (.idea) / GENERAL ENV
+
+# ------------------------------------------------------------
+
+# Go build artifacts & caches
+
+/bin/
+/build/
+\*.exe
+\*.exe\~
+\*.dll
+\*.so
+\*.dylib
+*.test
+*.out
+coverage.*
+profile.*
+
+# Go modules cache (when GOPATH is inside repo)
+
+/pkg/
+
+# IntelliJ IDEA & Goland project files
+
+.idea/
+\*.iml
+\*.ipr
+\*.iws
+
+# VSCode (if contributors use it)
+
+.vscode/
+
+# Logs & runtime files
+
+\*.log
+\*.tmp
+\*.swp
+
+# Environment & secrets
+
+.env
+.env.\*
+
+# Generated code – keep if you commit .pb.go files
+
+# Uncomment if you prefer to re‑generate on CI
+
+# api/\*\*/\*.pb.go
+
+# api/\*\*/\*.grpc.pb.go
+
+# Buf build files
+
+buf.build/
+
+# Migrations binary (golang‑migrate local build)
+
+/migrate
+
+# Docker artifacts
+
+\*\*/.docker
+
+# Testcontainers local volumes
+
+/testcontainers/\*\*
+
+# OS specific
+
+.DS\_Store
+Thumbs.db
+
+# JetBrains IDE additional
+
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/\*\*/shelf
+
+# End of .gitignore
+
