@@ -1,8 +1,0 @@
-version: v1
-name: github.com/ADRPUR/event-driven-marketplace
-breaking:
-  use:
-    - FILE
-lint:
-  use:
-    - DEFAULT
