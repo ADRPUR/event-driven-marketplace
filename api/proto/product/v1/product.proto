@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package product.v1;
+
+option go_package = "github.com/ADRPUR/event-driven-marketplace/api/proto/product/v1;productv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Product domain object
+message Product {
+  string id = 1;                         // UUID
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// --- CRUD Requests & Responses ---
+
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+}
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message GetProductResponse {
+  Product product = 1;
+}
+
+message ListProductsRequest {
+  int32 page = 1;       // optional pagination
+  int32 page_size = 2;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  int32 total = 2;
+}
+
+message UpdateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+}
+
+message UpdateProductResponse {
+  Product product = 1;
+}
+
+message DeleteProductRequest {
+  string id = 1;
+}
+
+service ProductService {
+  rpc CreateProduct (CreateProductRequest) returns (CreateProductResponse);
+  rpc GetProduct    (GetProductRequest)    returns (GetProductResponse);
+  rpc ListProducts  (ListProductsRequest)  returns (ListProductsResponse);
+  rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct (DeleteProductRequest) returns (google.protobuf.Empty);
+}
