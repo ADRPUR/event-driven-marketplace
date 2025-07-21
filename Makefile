@@ -1,7 +1,10 @@
-.PHONY: generate migrate test run
+.PHONY: generate migrate test run new_migration
 
 GO           := go
 PROTO_DIR    := api/proto
+TIMESTAMP := $(shell date +%Y%m%d%H%M%S)
+SERVICE   ?= product
+NAME      ?= unnamed
 
 # generate Go code from .proto via Buf
 generate:
@@ -18,3 +21,9 @@ migrate:
 # start ProductService (gRPC + REST)
 run:
 	$(GO) run cmd/product-service/main.go
+
+new_migration:
+	@mkdir -p migrations/$(SERVICE)/sql
+	@touch migrations/$(SERVICE)/sql/$(TIMESTAMP)_$(NAME).up.sql
+	@touch migrations/$(SERVICE)/sql/$(TIMESTAMP)_$(NAME).down.sql
+	@echo "Created migrations for $(SERVICE): $(TIMESTAMP)_$(NAME).[up|down].sql"

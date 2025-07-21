@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"github.com/ADRPUR/event-driven-marketplace/internal/middleware"
+	grpcHandler "github.com/ADRPUR/event-driven-marketplace/internal/product/handler/grpc"
 	"github.com/ADRPUR/event-driven-marketplace/pkg/token"
 	"log"
 	"net"
@@ -20,7 +21,6 @@ import (
 
 	productv1 "github.com/ADRPUR/event-driven-marketplace/api/proto/product/v1"
 
-	grpcHandler "github.com/ADRPUR/event-driven-marketplace/internal/product/handler"
 	httphandler "github.com/ADRPUR/event-driven-marketplace/internal/product/handler/http"
 	"github.com/ADRPUR/event-driven-marketplace/internal/product/repository"
 	"github.com/ADRPUR/event-driven-marketplace/internal/product/service"
