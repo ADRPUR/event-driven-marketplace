@@ -2,7 +2,6 @@ package main
 
 // Main entry point for the Product‑Service. It boots both an HTTP (Gin) server
 // and a gRPC server, sharing the same business‑logic layer.
-// All comments are written in English, as required.
 
 import (
 	"context"
@@ -64,17 +63,17 @@ func main() {
 
 	httphandler.RegisterHTTPRoutes(r, svc)
 
-	if !strings.Contains(cfg.HTTPAddr, ":") {
-		cfg.HTTPAddr = ":" + cfg.HTTPAddr
+	if !strings.Contains(cfg.ProdHTTPAddr, ":") {
+		cfg.ProdHTTPAddr = ":" + cfg.ProdHTTPAddr
 	}
 
 	httpSrv := &http.Server{
-		Addr:    cfg.HTTPAddr, // default ":8080"
+		Addr:    cfg.ProdHTTPAddr, // default ":8080"
 		Handler: r,
 	}
 
 	go func() {
-		log.Printf("HTTP server listening on %s", cfg.HTTPAddr)
+		log.Printf("HTTP server listening on %s", cfg.ProdHTTPAddr)
 		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("HTTP server error: %v", err)
 		}
@@ -88,16 +87,16 @@ func main() {
 	productv1.RegisterProductServiceServer(grpcSrv, grpcHandler.NewGRPCServer(svc))
 	reflection.Register(grpcSrv)
 
-	if !strings.Contains(cfg.GRPCAddr, ":") {
-		cfg.GRPCAddr = ":" + cfg.GRPCAddr
+	if !strings.Contains(cfg.ProdGRPCAddr, ":") {
+		cfg.ProdGRPCAddr = ":" + cfg.ProdGRPCAddr
 	}
 
 	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCAddr) // default ":50051"
+		lis, err := net.Listen("tcp", cfg.ProdGRPCAddr) // default ":50051"
 		if err != nil {
-			log.Fatalf("failed to listen on %s: %v", cfg.GRPCAddr, err)
+			log.Fatalf("failed to listen on %s: %v", cfg.ProdGRPCAddr, err)
 		}
-		log.Printf("gRPC server listening on %s", cfg.GRPCAddr)
+		log.Printf("gRPC server listening on %s", cfg.ProdGRPCAddr)
 		if err := grpcSrv.Serve(lis); err != nil {
 			log.Fatalf("gRPC server error: %v", err)
 		}

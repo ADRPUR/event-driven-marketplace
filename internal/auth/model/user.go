@@ -11,8 +11,8 @@ import (
 // In production, store hash cost & pepper in config.
 
 type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Email     string    `gorm:"uniqueIndex;size:320;not null"`
-	Password  string    `gorm:"size:60;not null"` // bcrypt hash
-	CreatedAt time.Time `gorm:"autoCreateTime"`
+	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Email        string    `gorm:"uniqueIndex;size:320;not null"`
+	PasswordHash string    `gorm:"size:60;not null"` // bcrypt hash
+	CreatedAt    time.Time `gorm:"autoCreateTime"`
 }

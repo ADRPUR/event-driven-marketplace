@@ -5,51 +5,58 @@ package handler
 
 import (
 	"context"
+	"time"
 
-	authv1 "github.com/ADRPUR/event-driven-marketplace/api/proto/auth/v1"
+	auth1 "github.com/ADRPUR/event-driven-marketplace/api/proto/auth/v1"
 	"github.com/ADRPUR/event-driven-marketplace/internal/auth/service"
 	"github.com/ADRPUR/event-driven-marketplace/pkg/token"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
-// grpcServer implements authv1.AuthServiceServer.
+// grpcServer implements AuthServiceServer
 type grpcServer struct {
-	authv1.UnimplementedAuthServiceServer
-	svc *service.AuthService
+	auth1.UnimplementedAuthServiceServer
+	svc *service.Service
 }
 
-// NewGRPCServer returns a gRPC AuthServiceServer.
-func NewGRPCServer(svc *service.AuthService) authv1.AuthServiceServer {
+// NewGRPCServer builds a gRPC server instance
+func NewGRPCServer(svc *service.Service) auth1.AuthServiceServer {
 	return &grpcServer{svc: svc}
 }
 
-// ---------------- RPCs ----------------
-
-func (s *grpcServer) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
-	at, rt, err := s.svc.Login(ctx, req.Email, req.Password)
+func (s *grpcServer) Login(ctx context.Context, req *auth1.LoginRequest) (*auth1.LoginResponse, error) {
+	at, rt, pl, err := s.svc.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return nil, err
 	}
-	return &authv1.LoginResponse{AccessToken: at, RefreshToken: rt}, nil
+	return &auth1.LoginResponse{
+		AccessToken:  at,
+		RefreshToken: rt,
+		TokenType:    "bearer",
+		ExpiresIn:    int64(pl.ExpiredAt.Sub(time.Now()).Seconds()),
+	}, nil
 }
 
-func (s *grpcServer) Refresh(ctx context.Context, req *authv1.RefreshRequest) (*authv1.RefreshResponse, error) {
-	at, err := s.svc.Refresh(ctx, req.RefreshToken)
+func (s *grpcServer) Refresh(ctx context.Context, req *auth1.LoginResponse) (*auth1.LoginResponse, error) {
+	at, pl, err := s.svc.Refresh(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
-	return &authv1.RefreshResponse{AccessToken: at}, nil
+	return &auth1.LoginResponse{
+		AccessToken:  at,
+		RefreshToken: req.RefreshToken,
+		TokenType:    "bearer",
+		ExpiresIn:    int64(pl.ExpiredAt.Sub(time.Now()).Seconds()),
+	}, nil
 }
 
-func (s *grpcServer) Logout(ctx context.Context, req *authv1.LogoutRequest) (*authv1.LogoutResponse, error) {
-	if err := s.svc.Logout(ctx, req.RefreshToken); err != nil {
-		return nil, err
-	}
-	return &authv1.LogoutResponse{Success: true}, nil
+func (s *grpcServer) Logout(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	// Extract refresh token from metadata if needed, or ignore body
+	// Here we assume client sends refresh token in metadata or URL.
+	return &emptypb.Empty{}, nil
 }
 
-// ---------------- Helpers ----------------
-
-// PayloadFromCtx is a convenience accessor.
+// PayloadFromCtx retrieves the Paseto payload
 func PayloadFromCtx(ctx context.Context) *token.Payload {
 	p, _ := ctx.Value(token.CtxKey).(*token.Payload)
 	return p

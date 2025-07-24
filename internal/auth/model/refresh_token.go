@@ -13,3 +13,8 @@ type RefreshToken struct {
 	ExpiresAt time.Time `gorm:"index"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
+
+// IsExpired returns true if the token has expired.
+func (rt *RefreshToken) IsExpired() bool {
+	return time.Now().After(rt.ExpiresAt)
+}

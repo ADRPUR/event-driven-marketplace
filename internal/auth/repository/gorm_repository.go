@@ -13,15 +13,18 @@ import (
 
 var ErrNotFound = errors.New("record not found")
 
-type GormRepo struct{ db *gorm.DB }
+type GormRepo struct {
+	db *gorm.DB
+}
 
 func NewGormRepository(db *gorm.DB) *GormRepo { return &GormRepo{db: db} }
 
-// Create ---- UserRepository ----
+// Create user
 func (r *GormRepo) Create(ctx context.Context, u *model.User) error {
 	return r.db.WithContext(ctx).Create(u).Error
 }
 
+// GetByEmail fetches a user by email
 func (r *GormRepo) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	var u model.User
 	err := r.db.WithContext(ctx).First(&u, "email = ?", email).Error
@@ -31,40 +34,35 @@ func (r *GormRepo) GetByEmail(ctx context.Context, email string) (*model.User, e
 	return &u, err
 }
 
+// DeleteUser Delete user (hard-delete)
 func (r *GormRepo) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	// Hard-delete:
-	// return r.db.WithContext(ctx).Delete(&model.User{}, "id = ?", id).Error
-
-	// Soft-delete (presupunând câmp DeletedAt *time.Time în model.User):
-	return r.db.WithContext(ctx).
-		Model(&model.User{}).
-		Where("id = ?", id).
-		Update("deleted_at", time.Now()).
-		Error
+	return r.db.WithContext(ctx).Delete(&model.User{}, "id = ?", id).Error
 }
 
-// Save ---- TokenRepository ----
-func (r *GormRepo) Save(ctx context.Context, userID uuid.UUID, token string, expiresAt time.Time) error {
-	rt := model.RefreshToken{
-		ID:        uuid.New(),
-		UserID:    userID,
-		Token:     token,
-		ExpiresAt: expiresAt,
+// Save a new refresh token
+func (r *GormRepo) Save(ctx context.Context, rt *model.RefreshToken) error {
+	return r.db.WithContext(ctx).Create(rt).Error
+}
+
+// Get a refresh token record
+func (r *GormRepo) Get(ctx context.Context, token string) (*model.RefreshToken, error) {
+	var rt model.RefreshToken
+	err := r.db.WithContext(ctx).First(&rt, "token = ?", token).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
 	}
-	return r.db.WithContext(ctx).Create(&rt).Error
+	return &rt, err
 }
 
+// Delete a refresh token
 func (r *GormRepo) Delete(ctx context.Context, token string) error {
 	return r.db.WithContext(ctx).Delete(&model.RefreshToken{}, "token = ?", token).Error
 }
 
-func (r *GormRepo) Exists(ctx context.Context, token string) (bool, error) {
-	var count int64
-	if err := r.db.WithContext(ctx).
-		Model(&model.RefreshToken{}).
-		Where("token = ? AND expires_at > NOW()", token).
-		Count(&count).Error; err != nil {
-		return false, err
-	}
-	return count > 0, nil
+// DeleteExpired removes old tokens
+func (r *GormRepo) DeleteExpired(ctx context.Context, before time.Time) error {
+	return r.db.WithContext(ctx).
+		Where("expires_at < ?", before).
+		Delete(&model.RefreshToken{}).
+		Error
 }

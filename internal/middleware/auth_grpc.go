@@ -46,7 +46,7 @@ func AuthUnaryInterceptor(maker token.Maker) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "%v", err)
 		}
 
-		newCtx := context.WithValue(ctx, "payload", payload)
+		newCtx := context.WithValue(ctx, token.CtxKey, payload)
 		return handler(newCtx, req)
 	}
 }

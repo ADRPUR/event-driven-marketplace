@@ -17,8 +17,10 @@ import (
 // Extend this struct with additional fields (Kafka, Redis, etc.) as needed.
 
 type Config struct {
-	HTTPAddr     string // HTTP listen address, default ":8080"
-	GRPCAddr     string // gRPC listen address, default ":50051"
+	ProdHTTPAddr string // HTTP listen address, default ":8080"
+	ProdGRPCAddr string // gRPC listen address, default ":50051"
+	AuthHTTPAddr string // HTTP listen address, default ":8090"
+	AuthGRPCAddr string // gRPC listen address, default ":50052"
 	DBURL        string // Postgres DSN (required)
 	SymmetricKey string // 32‑byte key for Paseto (required)
 }
@@ -35,8 +37,10 @@ func Load() Config {
 	_ = godotenv.Load()
 
 	cfg := Config{
-		HTTPAddr:     getEnv("HTTP_ADDR", ":8080"),
-		GRPCAddr:     getEnv("GRPC_ADDR", ":50051"),
+		AuthHTTPAddr: getEnv("AUTH_HTTP_ADDR", ":8090"),
+		ProdHTTPAddr: getEnv("PROD_HTTP_ADDR", ":8080"),
+		AuthGRPCAddr: getEnv("AUTH_GRPC_ADDR", ":50052"),
+		ProdGRPCAddr: getEnv("PROD_GRPC_ADDR", ":50051"),
 		DBURL:        mustGetEnv("DATABASE_URL"),
 		SymmetricKey: mustGetEnv("SYMMETRIC_KEY"),
 	}

@@ -28,6 +28,9 @@ type Payload struct {
 	ExpiredAt time.Time `json:"exp"`
 }
 
+// CtxKey is the context key for storing payloads in context.Context.
+const CtxKey = "payload"
+
 // IsExpired checks if the token is expired.
 func (p *Payload) IsExpired() bool {
 	return time.Now().After(p.ExpiredAt)
