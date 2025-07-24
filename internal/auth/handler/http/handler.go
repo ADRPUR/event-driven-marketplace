@@ -1,4 +1,4 @@
-package handler
+package http
 
 import (
 	"encoding/json"
@@ -15,10 +15,10 @@ import (
 )
 
 type Handler struct {
-	svc *service.Service
+	svc service.AuthService
 }
 
-func New(svc *service.Service) *Handler { return &Handler{svc: svc} }
+func New(svc service.AuthService) *Handler { return &Handler{svc: svc} }
 
 // RegisterPublicRoutes mounts /register, /login, /refresh
 func RegisterPublicRoutes(r *gin.Engine, h *Handler) {

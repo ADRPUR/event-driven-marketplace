@@ -22,6 +22,17 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 )
 
+type AuthService interface {
+	Register(ctx context.Context, user *model.User, details *model.UserDetails, password string) error
+	Login(ctx context.Context, email, password string) (string, string, string, *token.Payload, error)
+	Refresh(ctx context.Context, sessionToken string) (string, *token.Payload, error)
+	Logout(ctx context.Context, sessionToken string) error
+	GetUserWithDetails(ctx context.Context, id uuid.UUID) (*model.User, *model.UserDetails, error)
+	UpdateUserDetails(ctx context.Context, userID uuid.UUID, details *model.UserDetails) error
+	ChangePassword(ctx context.Context, userID uuid.UUID, old, new string) error
+	UploadPhoto(ctx context.Context, userID uuid.UUID, data []byte, ext string) (string, string, error)
+}
+
 // Service implements authentication and user management logic.
 type Service struct {
 	users    repository.UserRepository
@@ -38,11 +49,11 @@ func New(users repository.UserRepository, sessions repository.SessionRepository,
 
 // Register creates a new user with details and hashes the password.
 func (s *Service) Register(ctx context.Context, user *model.User, details *model.UserDetails, password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashPassword, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
-	user.PasswordHash = string(hash)
+	user.PasswordHash = hashPassword
 	user.ID = uuid.New()
 	details.UserID = user.ID
 	return s.users.Create(ctx, user, details)
@@ -110,11 +121,12 @@ func (s *Service) ChangePassword(ctx context.Context, userID uuid.UUID, oldPassw
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)) != nil {
 		return ErrInvalidCredentials
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+
+	password, err := HashPassword(newPassword)
 	if err != nil {
 		return err
 	}
-	user.PasswordHash = string(hash)
+	user.PasswordHash = password
 	return s.users.Update(ctx, user, nil)
 }
 
@@ -139,4 +151,15 @@ func (s *Service) UploadPhoto(ctx context.Context, userID uuid.UUID, data []byte
 		_ = s.UpdateUserDetails(ctx, userID, details)
 	}
 	return photoPath, thumbPath, nil
+}
+
+// HashPassword hashes a password using bcrypt.
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a hashed password with a plaintext password.
+func CheckPasswordHash(hash, password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }

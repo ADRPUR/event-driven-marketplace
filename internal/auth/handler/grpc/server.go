@@ -1,4 +1,4 @@
-package handler
+package grpc
 
 import (
 	"context"
@@ -18,10 +18,10 @@ import (
 // grpcServer implements auth1.AuthServiceServer
 type grpcServer struct {
 	auth1.UnimplementedAuthServiceServer
-	svc *service.Service
+	svc service.AuthService
 }
 
-func NewGRPCServer(svc *service.Service) auth1.AuthServiceServer {
+func NewGRPCServer(svc service.AuthService) auth1.AuthServiceServer {
 	return &grpcServer{svc: svc}
 }
 
@@ -50,7 +50,7 @@ func (s *grpcServer) Register(ctx context.Context, req *auth1.RegisterRequest) (
 		ThumbnailPath: req.Details.ThumbnailPath,
 	}
 	if err := s.svc.Register(ctx, user, details, req.Password); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	return &auth1.RegisterResponse{Id: user.ID.String()}, nil
 }
@@ -59,7 +59,7 @@ func (s *grpcServer) Register(ctx context.Context, req *auth1.RegisterRequest) (
 func (s *grpcServer) Login(ctx context.Context, req *auth1.LoginRequest) (*auth1.LoginResponse, error) {
 	at, rt, st, pl, err := s.svc.Login(ctx, req.Email, req.Password)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%v", err)
 	}
 	user, details, _ := s.svc.GetUserWithDetails(ctx, pl.UserID)
 	return &auth1.LoginResponse{
@@ -75,7 +75,7 @@ func (s *grpcServer) Login(ctx context.Context, req *auth1.LoginRequest) (*auth1
 func (s *grpcServer) Refresh(ctx context.Context, req *auth1.RefreshRequest) (*auth1.RefreshResponse, error) {
 	at, pl, err := s.svc.Refresh(ctx, req.SessionToken)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%v", err)
 	}
 	return &auth1.RefreshResponse{
 		AccessToken: at,
@@ -86,7 +86,7 @@ func (s *grpcServer) Refresh(ctx context.Context, req *auth1.RefreshRequest) (*a
 // Logout ------------------
 func (s *grpcServer) Logout(ctx context.Context, req *auth1.LogoutRequest) (*emptypb.Empty, error) {
 	if err := s.svc.Logout(ctx, req.SessionToken); err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 	return &emptypb.Empty{}, nil
 }
@@ -133,7 +133,7 @@ func (s *grpcServer) UpdateUserDetails(ctx context.Context, req *auth1.UpdateUse
 		ThumbnailPath: req.Details.ThumbnailPath,
 	}
 	if err := s.svc.UpdateUserDetails(ctx, payload.UserID, details); err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 	return &emptypb.Empty{}, nil
 }
@@ -145,7 +145,7 @@ func (s *grpcServer) ChangePassword(ctx context.Context, req *auth1.ChangePasswo
 		return nil, status.Errorf(codes.Unauthenticated, "not authenticated")
 	}
 	if err := s.svc.ChangePassword(ctx, payload.UserID, req.OldPassword, req.NewPassword); err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, err.Error())
+		return nil, status.Errorf(codes.PermissionDenied, "%v", err)
 	}
 	return &emptypb.Empty{}, nil
 }
@@ -158,7 +158,7 @@ func (s *grpcServer) UploadPhoto(ctx context.Context, req *auth1.UploadPhotoRequ
 	}
 	photoPath, thumbPath, err := s.svc.UploadPhoto(ctx, payload.UserID, req.PhotoData, req.FileExt)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 	return &auth1.UploadPhotoResponse{
 		PhotoPath:     photoPath,
