@@ -2,24 +2,24 @@ package repository
 
 import (
 	"context"
-	"time"
-
-	"github.com/google/uuid"
-
 	"github.com/ADRPUR/event-driven-marketplace/internal/auth/model"
+	"github.com/google/uuid"
 )
 
-// UserRepository defines CRUD on users.
+// UserRepository manages users and user_details.
 type UserRepository interface {
-	Create(ctx context.Context, u *model.User) error
-	GetByEmail(ctx context.Context, email string) (*model.User, error)
-	DeleteUser(ctx context.Context, id uuid.UUID) error
+	Create(ctx context.Context, user *model.User, details *model.UserDetails) error
+	GetByEmail(ctx context.Context, email string) (*model.User, *model.UserDetails, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*model.User, *model.UserDetails, error)
+	Update(ctx context.Context, user *model.User, details *model.UserDetails) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-// TokenRepository defines operations on refresh tokens.
-type TokenRepository interface {
-	Save(ctx context.Context, rt *model.RefreshToken) error
-	Get(ctx context.Context, token string) (*model.RefreshToken, error)
-	Delete(ctx context.Context, token string) error
-	DeleteExpired(ctx context.Context, before time.Time) error
+// SessionRepository manages user sessions.
+type SessionRepository interface {
+	CreateSession(ctx context.Context, s *model.Session) error
+	GetSessionByToken(ctx context.Context, token string) (*model.Session, error)
+	DeleteSession(ctx context.Context, token string) error
+	DeleteByUserID(ctx context.Context, userID uuid.UUID) error
+	CleanupExpired(ctx context.Context) error
 }

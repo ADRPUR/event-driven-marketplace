@@ -1,26 +1,93 @@
 syntax = "proto3";
 
 package auth.v1;
-
 option go_package = "github.com/ADRPUR/event-driven-marketplace/api/proto/auth/v1;auth1";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
+message User {
+  string id = 1;
+  string email = 2;
+  string role = 3;
+  UserDetails details = 4;
+}
+
+message UserDetails {
+  string first_name = 1;
+  string last_name = 2;
+  string date_of_birth = 3; // ISO date
+  string phone = 4;
+  map<string, string> address = 5;
+  string photo_path = 6;
+  string thumbnail_path = 7;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string role = 3;
+  UserDetails details = 4;
+}
+message RegisterResponse {
+  string id = 1;
+}
+
 message LoginRequest {
   string email = 1;
   string password = 2;
 }
-
 message LoginResponse {
-  string access_token  = 1;
+  string access_token = 1;
   string refresh_token = 2;
-  string token_type    = 3; // "bearer"
-  int64  expires_in    = 4; // seconds
+  string session_token = 3;
+  int64 expires_at = 4;
+  User user = 5;
+}
+
+message RefreshRequest {
+  string session_token = 1;
+}
+message RefreshResponse {
+  string access_token = 1;
+  int64 expires_at = 2;
+}
+
+message LogoutRequest {
+  string session_token = 1;
+}
+message MeRequest {
+  // Empty, use context for auth.
+}
+message MeResponse {
+  User user = 1;
+}
+
+message UploadPhotoRequest {
+  bytes photo_data = 1;         // file bytes
+  string file_ext = 2;          // ".jpg", ".png" etc
+}
+
+message UploadPhotoResponse {
+  string photo_path = 1;
+  string thumbnail_path = 2;
+}
+
+message UpdateUserDetailsRequest {
+  UserDetails details = 1;
+}
+message ChangePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
 }
 
 service AuthService {
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Refresh(LoginResponse) returns (LoginResponse);
-  rpc Logout(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Refresh (RefreshRequest) returns (RefreshResponse);
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
+  rpc Me (MeRequest) returns (MeResponse);
+  rpc UpdateUserDetails (UpdateUserDetailsRequest) returns (google.protobuf.Empty);
+  rpc ChangePassword (ChangePasswordRequest) returns (google.protobuf.Empty);
+  rpc UploadPhoto (UploadPhotoRequest) returns (UploadPhotoResponse);
 }

@@ -1,1 +1,3 @@
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS user_details;
 DROP TABLE IF EXISTS users;

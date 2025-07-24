@@ -41,6 +41,7 @@ migrate:
 # start ProductService (gRPC + REST)
 run:
 	$(GO) run cmd/product-service/main.go
+	$(GO) run cmd/auth-service/main.go
 
 new_migration:
 	@mkdir -p migrations/sql
