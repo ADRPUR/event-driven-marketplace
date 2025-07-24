@@ -30,9 +30,8 @@ type UserDetails struct {
 	Address       datatypes.JSON
 	PhotoPath     string
 	ThumbnailPath string
-	CreatedAt     time.Time      `gorm:"autoCreateTime"`
-	UpdatedAt     time.Time      `gorm:"autoUpdateTime"`
-	DeletedAt     gorm.DeletedAt `gorm:"index"`
+	CreatedAt     time.Time `gorm:"autoCreateTime"`
+	UpdatedAt     time.Time `gorm:"autoUpdateTime"`
 }
 
 // Session stores session data for authenticated users.
