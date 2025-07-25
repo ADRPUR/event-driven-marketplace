@@ -10,7 +10,7 @@ import (
 
 	"github.com/ADRPUR/event-driven-marketplace/internal/auth/model"
 	"github.com/ADRPUR/event-driven-marketplace/internal/auth/service"
-	"github.com/ADRPUR/event-driven-marketplace/pkg/token"
+	"github.com/ADRPUR/event-driven-marketplace/internal/auth/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -149,8 +149,8 @@ func (h *Handler) logout(c *gin.Context) {
 }
 
 func (h *Handler) me(c *gin.Context) {
-	payload, ok := c.Request.Context().Value(token.CtxKey).(*token.Payload)
-	if !ok || payload == nil {
+	payload := utils.ExtractPayload(c)
+	if payload == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
 		return
 	}
@@ -167,25 +167,31 @@ func (h *Handler) me(c *gin.Context) {
 			address = nil // or you can log/ignore
 		}
 	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"id":          user.ID,
-		"email":       user.Email,
-		"role":        user.Role,
-		"firstName":   safeStr(details, func(d *model.UserDetails) string { return d.FirstName }),
-		"lastName":    safeStr(details, func(d *model.UserDetails) string { return d.LastName }),
-		"dateOfBirth": safeDate(details, func(d *model.UserDetails) time.Time { return d.DateOfBirth }),
-		"phone":       safeStr(details, func(d *model.UserDetails) string { return d.Phone }),
-		"address":     address,
-		"photo":       safeStr(details, func(d *model.UserDetails) string { return d.PhotoPath }),
-		"thumbnail":   safeStr(details, func(d *model.UserDetails) string { return d.ThumbnailPath }),
+		"id":      user.ID,
+		"email":   user.Email,
+		"role":    user.Role,
+		"details": details,
 	})
+
+	//c.JSON(http.StatusOK, gin.H{
+	//	"id":          user.ID,
+	//	"email":       user.Email,
+	//	"role":        user.Role,
+	//	"firstName":   safeStr(details, func(d *model.UserDetails) string { return d.FirstName }),
+	//	"lastName":    safeStr(details, func(d *model.UserDetails) string { return d.LastName }),
+	//	"dateOfBirth": safeDate(details, func(d *model.UserDetails) time.Time { return d.DateOfBirth }),
+	//	"phone":       safeStr(details, func(d *model.UserDetails) string { return d.Phone }),
+	//	"address":     address,
+	//	"photo":       safeStr(details, func(d *model.UserDetails) string { return d.PhotoPath }),
+	//	"thumbnail":   safeStr(details, func(d *model.UserDetails) string { return d.ThumbnailPath }),
+	//})
 }
 
 // [PUT] /me — update user details
 func (h *Handler) updateMe(c *gin.Context) {
-	payload, ok := c.Request.Context().Value(token.CtxKey).(*token.Payload)
-	if !ok || payload == nil {
+	payload := utils.ExtractPayload(c)
+	if payload == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
 		return
 	}
@@ -227,8 +233,8 @@ func (h *Handler) updateMe(c *gin.Context) {
 
 // POST /me/photo — upload profile photo
 func (h *Handler) uploadPhoto(c *gin.Context) {
-	payload, ok := c.Request.Context().Value(token.CtxKey).(*token.Payload)
-	if !ok || payload == nil {
+	payload := utils.ExtractPayload(c)
+	if payload == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
 		return
 	}
@@ -264,8 +270,8 @@ func (h *Handler) uploadPhoto(c *gin.Context) {
 
 // POST /me/password — change password
 func (h *Handler) changePassword(c *gin.Context) {
-	payload, ok := c.Request.Context().Value(token.CtxKey).(*token.Payload)
-	if !ok || payload == nil {
+	payload := utils.ExtractPayload(c)
+	if payload == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
 		return
 	}

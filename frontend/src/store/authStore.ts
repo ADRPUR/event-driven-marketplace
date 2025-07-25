@@ -6,11 +6,35 @@ type AuthState = {
     token: string | null;
     login: (user: User, token: string) => void;
     logout: () => void;
+    init: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
     user: null,
     token: null,
-    login: (user, token) => set({ user, token }),
-    logout: () => set({ user: null, token: null }),
+    login: (user, token) => {
+        set({ user, token });
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("token", token);
+    },
+    logout: () => {
+        set({ user: null, token: null });
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+    },
+    init: () => {
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
+        let user = null;
+        try {
+            user = userStr ? JSON.parse(userStr) : null;
+        } catch (e) {
+            user = null;
+            localStorage.removeItem("user");
+        }
+        set({
+            user,
+            token: token ?? null,
+        });
+    },
 }));
