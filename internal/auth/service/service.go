@@ -132,7 +132,7 @@ func (s *Service) ChangePassword(ctx context.Context, userID uuid.UUID, oldPassw
 
 // UploadPhoto save the file and update the path in UserDetails.
 func (s *Service) UploadPhoto(ctx context.Context, userID uuid.UUID, data []byte, ext string) (string, string, error) {
-	photoDir := "./static/photos/users"
+	photoDir := "./static/photos/users/"
 	if err := os.MkdirAll(photoDir, 0755); err != nil {
 		return "", "", err
 	}
@@ -142,7 +142,7 @@ func (s *Service) UploadPhoto(ctx context.Context, userID uuid.UUID, data []byte
 		return "", "", err
 	}
 	// TODO: thumbnail generation (for demo, leave empty)
-	photoPath := "/static/photos/users" + filename
+	photoPath := "/static/photos/users/" + filename
 	thumbPath := ""
 	_, details, err := s.GetUserWithDetails(ctx, userID)
 	if err == nil && details != nil {

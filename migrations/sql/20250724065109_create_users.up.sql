@@ -14,7 +14,7 @@ CREATE TABLE user_details
     user_id        UUID PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
     first_name     TEXT,
     last_name      TEXT,
-    date_of_birth  DATE,
+    date_of_birth  DATE DEFAULT NULL,
     phone          TEXT,
     address        JSONB,
     photo_path     TEXT,
